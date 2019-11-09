@@ -113,11 +113,11 @@ def problem1(cnetid):
     
     flag = bytearray()
     for hash in hashes:
-        maxnum = 0
+        maxcount = 0
         maxbyte = bytes()
         for key in hash:
-            if hash[key] > maxnum:
-                maxnum = hash[key]
+            if hash[key] > maxcount:
+                maxcount = hash[key]
                 maxbyte = key
         flag.append(maxbyte)
     return bytes(flag)
