@@ -65,7 +65,7 @@ if __name__ == '__main__':
     for i in range(50):
         query += '\x00'
     print(query)
-    #findbias(query)
+    findbias(query)
     
     flag = breakbias(query[-30:])
-    print(flag)
+    print(bytes(flag))

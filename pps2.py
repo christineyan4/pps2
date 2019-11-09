@@ -95,8 +95,32 @@ def make_query(task, cnetid, query):
 ################################################################################
 
 def problem1(cnetid):
-    return b''
-
+    query = ''
+    for i in range(30):
+        query += '\x00'
+    
+    hashes = [{} for i in range(17)]
+    for i in range(17):
+        for j in range(150):
+            response = make_query('one', 'cyan4', query)
+            byte = response[30]
+            if byte in hashes[i]:
+                hashes[i][byte] += 1
+            else:
+                hashes[i][byte] = 1
+        query = query[1:]
+        print(len(query))
+    
+    flag = bytearray()
+    for hash in hashes:
+        maxnum = 0
+        maxbyte = bytes()
+        for key in hash:
+            if hash[key] > maxnum:
+                maxnum = hash[key]
+                maxbyte = key
+        flag.append(maxbyte)
+    return bytes(flag)
 
 ################################################################################
 # Problem 2 SOLUTION
@@ -139,7 +163,7 @@ def problem6(cnetid):
 
 if __name__ == "__main__":
     # your driver code for testing here
-
+    print(problem1('cyan4'))
     # example running AES; delete the code below here
     key = b'ABCDEFGHABCDEFGH'
     block1 = b'abcdefghabcdefgh'
