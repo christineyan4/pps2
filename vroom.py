@@ -3,7 +3,7 @@ import pps2 as pps
 def findbias(query):
     hashes = []
     maxbyte = bytes()
-    maxnum = 0
+    maxcount = 0
     maxindex = -1 
 
     for i in range(51):
@@ -20,15 +20,15 @@ def findbias(query):
     i = 0
     for hash in hashes:
         for key in hash: 
-            if hash[key] > maxnum:
-                maxnum = hash[key]
+            if hash[key] > maxcount:
+                maxcount = hash[key]
                 maxbyte = key
                 maxindex = i
         i += 1
 
     print(hashes)
     print("Bias is " + str(maxbyte) + " at byte " + str(maxindex))
-    print(str(maxnum) + " times")
+    print(str(maxcount) + " times")
 
 def breakbias(query):
     hashes = []
@@ -48,11 +48,11 @@ def breakbias(query):
 
     flag = bytearray()
     for hash in hashes:
-        maxnum = 0
+        maxcount = 0
         maxbyte = bytes()
         for key in hash:
-            if hash[key] > maxnum:
-                maxnum = hash[key]
+            if hash[key] > maxcount:
+                maxcount = hash[key]
                 maxbyte = key
         flag.append(maxbyte)
     return flag
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     for i in range(50):
         query += '\x00'
     print(query)
-    #findbias(query)
+    findbias(query)
     
     flag = breakbias(query[-30:])
-    print(flag)
+    print(bytes(flag))

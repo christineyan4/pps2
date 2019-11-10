@@ -95,7 +95,33 @@ def make_query(task, cnetid, query):
 ################################################################################
 
 def problem1(cnetid):
-    return b''
+    query = ''
+    for i in range(30):
+        query += '\x00'
+    
+    hashes = [{} for i in range(17)]
+    for i in range(17):
+        for j in range(150):
+            response = make_query('one', 'cyan4', query)
+            byte = response[30]
+            if byte in hashes[i]:
+                hashes[i][byte] += 1
+            else:
+                hashes[i][byte] = 1
+        query = query[1:]
+        print(len(query))
+    
+    flag = bytearray()
+    for hash in hashes:
+        maxcount = 0
+        maxbyte = bytes()
+        for key in hash:
+            if hash[key] > maxcount:
+                maxcount = hash[key]
+                maxbyte = key
+        flag.append(maxbyte)
+    
+    return bytes(flag)
 
 
 ################################################################################
@@ -103,7 +129,18 @@ def problem1(cnetid):
 ################################################################################
 
 def problem2(cnetid):
-    return b''
+    onebyte = 'c'
+    response = make_query('twob', cnetid, onebyte)
+    usertext = response[:16]
+
+    emptyquery = ''
+    response = make_query('twoa', cnetid, emptyquery)
+    admintext = response[-16:]
+
+    ciphertext = usertext + admintext
+    response = make_query('twoc', cnetid, ciphertext)
+
+    return response
 
 
 ################################################################################
@@ -139,8 +176,11 @@ def problem6(cnetid):
 
 if __name__ == "__main__":
     # your driver code for testing here
+    #print(problem1('cyan4'))
 
+    print(problem2('cyan4'))
     # example running AES; delete the code below here
+    """
     key = b'ABCDEFGHABCDEFGH'
     block1 = b'abcdefghabcdefgh'
     block2 = bytearray(b'abcdefghabcdefgh')
@@ -163,5 +203,6 @@ if __name__ == "__main__":
     block2.extend([0])
     print(block2)
     block2.extend(block1)
-    block2 = bytearray('abcdefghabcdefgh')
+    block2 = bytearray(b'abcdefghabcdefgh')
     print(block2)
+    """
