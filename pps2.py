@@ -120,14 +120,27 @@ def problem1(cnetid):
                 maxcount = hash[key]
                 maxbyte = key
         flag.append(maxbyte)
+    
     return bytes(flag)
+
 
 ################################################################################
 # Problem 2 SOLUTION
 ################################################################################
 
 def problem2(cnetid):
-    return b''
+    onebyte = 'c'
+    response = make_query('twob', cnetid, onebyte)
+    usertext = response[:16]
+
+    emptyquery = ''
+    response = make_query('twoa', cnetid, emptyquery)
+    admintext = response[-16:]
+
+    ciphertext = usertext + admintext
+    response = make_query('twoc', cnetid, ciphertext)
+
+    return response
 
 
 ################################################################################
@@ -163,8 +176,11 @@ def problem6(cnetid):
 
 if __name__ == "__main__":
     # your driver code for testing here
-    print(problem1('cyan4'))
+    #print(problem1('cyan4'))
+
+    print(problem2('cyan4'))
     # example running AES; delete the code below here
+    """
     key = b'ABCDEFGHABCDEFGH'
     block1 = b'abcdefghabcdefgh'
     block2 = bytearray(b'abcdefghabcdefgh')
@@ -187,5 +203,6 @@ if __name__ == "__main__":
     block2.extend([0])
     print(block2)
     block2.extend(block1)
-    block2 = bytearray('abcdefghabcdefgh')
+    block2 = bytearray(b'abcdefghabcdefgh')
     print(block2)
+    """
