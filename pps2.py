@@ -6,7 +6,60 @@ import random
 import os
 import zlib
 
+
 ################################################################################
+# Helper functions
+################################################################################
+
+# problem 1
+def find_bias():
+    hashes = []
+    query = ''
+
+    for i in range(50):
+        hashes.append({})
+        query += '\x00'
+    for i in range(200):
+        response = make_query('one', 'cyan4', query)
+        for j in range(50):
+            byte = response[j]
+            if byte in hashes[j]:
+                hashes[j][byte] += 1
+            else:
+                hashes[j][byte] = 1
+    
+    maxbyte = bytes()
+    maxcount = 0
+    maxindex = -1 
+    i = 0
+    for hash in hashes:
+        for key in hash: 
+            if hash[key] > maxcount:
+                maxcount = hash[key]
+                maxbyte = key
+                maxindex = i
+        i += 1
+
+    print("Bias is " + str(maxbyte) + " at byte " + str(maxindex))
+    print(str(maxcount) + " times")
+    return maxindex
+
+# problem 3
+def get_flaglength():
+    replylengths = []
+    query = '\x00'
+    oldresponse = make_query('three', 'cyan4', query)
+    done = False
+
+    while not done:
+        query += '\x00'
+        newresponse = make_query('three', 'cyan4', query)
+        if len(newresponse) != len(oldresponse):
+            done = True
+    flaglength = len(newresponse) - 16 - len(query)
+    return flaglength
+
+###############################################################################
 # CS 284 Padding Utility Functions
 ################################################################################
 
@@ -68,7 +121,8 @@ def cmsc284checkpadding(s,k=16):
 
 PPS2SERVER = "http://cryptoclass.cs.uchicago.edu/"
 def make_query(task, cnetid, query):
-    DEBUG = False 
+    #DEBUG = True
+    DEBUG = False
     if DEBUG:
         print("making a query")
         print("Task:", task)
@@ -120,7 +174,6 @@ def problem1(cnetid):
                 maxcount = hash[key]
                 maxbyte = key
         flag.append(maxbyte)
-    
     return bytes(flag)
 
 
@@ -148,7 +201,27 @@ def problem2(cnetid):
 ################################################################################
 
 def problem3(cnetid):
-    return b''
+    flaglength = get_flaglength()
+    querylength = flaglength + (16 - flaglength % 16) - 1
+
+    query = bytearray(querylength)
+    flag = bytearray()
+    newquery = bytearray(querylength + 1)
+
+    for i in range(flaglength):
+        response = make_query('three', cnetid, query)
+
+        for x in range(0, 256):
+            newquery[querylength] = x
+            newresponse = make_query('three', cnetid, newquery)
+            if newresponse[:querylength + 1] == response[:querylength + 1]:
+                flag.append(x)
+                newquery.append(x)
+                newquery = newquery[1:]
+                break
+        query = query[1:]
+
+    return flag
 
 
 ################################################################################
@@ -175,10 +248,21 @@ def problem6(cnetid):
 
 
 if __name__ == "__main__":
-    # your driver code for testing here
-    #print(problem1('cyan4'))
+    """
+    # testing problem 1
+    biasbyte = find_bias()
+    print(problem1('cyan4'))
 
+    # testing problem 2
     print(problem2('cyan4'))
+
+    # testing problem 3
+    flaglength = get_flaglength()
+    print(problem3('cyan4'))
+"""
+    # testing problem 4
+    print(problem4('cyan4'))
+
     # example running AES; delete the code below here
     """
     key = b'ABCDEFGHABCDEFGH'
