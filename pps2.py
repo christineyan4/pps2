@@ -59,6 +59,24 @@ def get_flaglength():
     flaglength = len(newresponse) - 16 - len(query)
     return flaglength
 
+def xor(blockone, blocktwo):
+    key = bytearray()
+    for i in range(16):
+        key.append(blockone[i] ^ blocktwo[i])
+    return bytes(key)
+
+# problem 4
+def cbc_encrypt(plaintext, key):
+    paddedtext = cmsc284pad(plaintext)
+    blockone = bytes(paddedtext[:16])
+    blocktwo = bytes(paddedtext[16:])
+    
+    cipher = AES.new(key, AES.MODE_ECB)
+    cipherone = cipher.encrypt(xor(key, blockone))
+    ciphertwo = cipher.encrypt(xor(cipherone, blocktwo))
+
+    return cipherone + ciphertwo
+
 ###############################################################################
 # CS 284 Padding Utility Functions
 ################################################################################
@@ -229,7 +247,17 @@ def problem3(cnetid):
 ################################################################################
 
 def problem4(cnetid):
-    return b''
+    keyquery = bytearray(32)
+    keytext = make_query('fourb', cnetid, keyquery)
+    key = xor(keytext[:16], keytext[16:])
+    print(key)
+
+    plaintext = bytearray(b'let me in please')
+    ciphertext = cbc_encrypt(plaintext, bytes(key))
+    print(ciphertext)
+
+    response = make_query('fourc', cnetid, ciphertext)
+    return response
 
 
 ################################################################################
