@@ -77,6 +77,30 @@ def cbc_encrypt(plaintext, key):
 
     return cipherone + ciphertwo
 
+# problem 5
+def adjust_padding(ccablock, numbytes):
+    for i in range(1, numbytes):
+        value = ccablock[-i]
+        currpad = numbytes - i
+        ccablock[-i] = value ^ currpad ^ (currpad + 1)
+
+def cca_attack(blockone, blocktwo):
+    flagblock = bytearray()
+    ccablock = bytearray(blockone)
+
+    for i in range(-1, -17, -1):
+        adjust_padding(ccablock, abs(i))    
+        for x in range(256):
+            ccablock[i] = x
+            newquery = ccablock + blocktwo
+            padcheck = make_query('fiveb', cnetid, newquery)
+            if padcheck == b'true':
+                newbyte = 1 ^ x ^ blockone[i]
+                flagblock.insert(0, newbyte)
+                break
+
+    return flagblock
+
 ###############################################################################
 # CS 284 Padding Utility Functions
 ################################################################################
@@ -181,7 +205,6 @@ def problem1(cnetid):
             else:
                 hashes[i][byte] = 1
         query = query[1:]
-        print(len(query))
     
     flag = bytearray()
     for hash in hashes:
@@ -192,6 +215,8 @@ def problem1(cnetid):
                 maxcount = hash[key]
                 maxbyte = key
         flag.append(maxbyte)
+
+    print(flag)
     return bytes(flag)
 
 
@@ -211,6 +236,7 @@ def problem2(cnetid):
     ciphertext = usertext + admintext
     response = make_query('twoc', cnetid, ciphertext)
 
+    print(response)
     return response
 
 
@@ -229,7 +255,8 @@ def problem3(cnetid):
     for i in range(flaglength):
         response = make_query('three', cnetid, query)
 
-        for x in range(0, 256):
+        #for x in range(256):
+        for x in range(128):
             newquery[querylength] = x
             newresponse = make_query('three', cnetid, newquery)
             if newresponse[:querylength + 1] == response[:querylength + 1]:
@@ -239,6 +266,7 @@ def problem3(cnetid):
                 break
         query = query[1:]
 
+    print(flag)
     return flag
 
 
@@ -250,13 +278,12 @@ def problem4(cnetid):
     keyquery = bytearray(32)
     keytext = make_query('fourb', cnetid, keyquery)
     key = xor(keytext[:16], keytext[16:])
-    print(key)
 
     plaintext = bytearray(b'let me in please')
     ciphertext = cbc_encrypt(plaintext, bytes(key))
-    print(ciphertext)
 
     response = make_query('fourc', cnetid, ciphertext)
+    print(response)
     return response
 
 
@@ -265,56 +292,57 @@ def problem4(cnetid):
 ################################################################################
 
 def problem5(cnetid):
-    return b''
+    query = ''
+    response = make_query('fivea', cnetid, query)
+    cipherzero = response[:16]
+    cipherone = response[16:32]
+    ciphertwo = response[32:]
+
+    flagblockone = cca_attack(cipherzero, cipherone)
+    flagblocktwo = cca_attack(cipherone, ciphertwo)
+    flag = flagblockone + flagblocktwo
+
+    print(flag[:29])
+    return flag[:29]
+
 
 ################################################################################
 # Problem 6 SOLUTION
 ################################################################################
 
 def problem6(cnetid):
-    return b''
+    query = bytearray(b'password=')
+    response = make_query('six', cnetid, query)
+
+    flag = bytearray()
+    while b';' not in flag:
+        #for x in range(256):
+        for x in range(128):
+            query.append(x)
+            newresponse = make_query('six', cnetid, query)
+            if len(newresponse) == len(response):
+                flag.append(x)
+                break
+            query = query[:-1]
+
+    print(flag[:-1])
+    return flag[:-1]
 
 
 if __name__ == "__main__":
-    """
-    # testing problem 1
+    cnetid = 'cyan4'
+
     biasbyte = find_bias()
-    print(problem1('cyan4'))
+    problem1(cnetid)
 
-    # testing problem 2
-    print(problem2('cyan4'))
-
-    # testing problem 3
-    flaglength = get_flaglength()
-    print(problem3('cyan4'))
-"""
-    # testing problem 4
-    print(problem4('cyan4'))
-
-    # example running AES; delete the code below here
     """
-    key = b'ABCDEFGHABCDEFGH'
-    block1 = b'abcdefghabcdefgh'
-    block2 = bytearray(b'abcdefghabcdefgh')
+    problem2(cnetid)
 
-    # we declare the mode to be ECB but can just it or single-block calls to
-    # AES
-    cipher = AES.new(key, AES.MODE_ECB)
-    print(cipher.encrypt(block1))
+    problem3(cnetid)
 
-    # the following call with fail without the converting block2 to bytes the
-    # call to AES. The AES implementation requires an immutable object and
-    # bytearray is mutable. Same goes for key.
-    print(cipher.encrypt(bytes(block2)))
+    problem4(cnetid)
 
-    # test query, will hang if off campus
-    # print(make_query('one','davidcash', ''))
+    problem5(cnetid)
 
-    # bytearrays are mutable, which is handy
-    print(block2)
-    block2.extend([0])
-    print(block2)
-    block2.extend(block1)
-    block2 = bytearray(b'abcdefghabcdefgh')
-    print(block2)
+    problem6(cnetid)
     """
